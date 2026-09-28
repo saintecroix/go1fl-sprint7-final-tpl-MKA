@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -69,10 +70,12 @@ func TestCafeCount(t *testing.T) {
 		mainHandle(response, req)
 
 		answer := 0
+		strings.TrimSpace(response.Body.String())
 		if response.Body.String() != "" {
 			answer = len(strings.Split(response.Body.String(), ","))
 		}
-		assert.Equal(t, v.want, answer)
+		require.Equal(t, http.StatusOK, response.Code)
+		require.Equal(t, v.want, answer)
 	}
 }
 
@@ -93,9 +96,11 @@ func TestCafeSearch(t *testing.T) {
 		mainHandle(response, req)
 
 		answer := 0
+		strings.TrimSpace(response.Body.String())
 		if response.Body.String() != "" {
 			answer = len(strings.Split(response.Body.String(), ","))
 		}
-		assert.Equal(t, v.want, answer)
+		require.Equal(t, http.StatusOK, response.Code)
+		require.Equal(t, v.want, answer)
 	}
 }
