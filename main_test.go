@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -46,5 +49,58 @@ func TestCafeWhenOk(t *testing.T) {
 		handler.ServeHTTP(response, req)
 
 		assert.Equal(t, http.StatusOK, response.Code)
+	}
+}
+
+func TestCafeCount(t *testing.T) {
+	requests := []struct {
+		count int // передаваемое значение count
+		want  int // ожидаемое количество кафе в ответе
+	}{
+		{0, 0},
+		{1, 1},
+		{2, 2},
+		{100, 3},
+	}
+
+	for _, v := range requests {
+		response := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", fmt.Sprintf("/cafe?city=tula&count=%s", strconv.Itoa(v.count)), nil)
+
+		mainHandle(response, req)
+
+		answer := 0
+		strings.TrimSpace(response.Body.String())
+		if response.Body.String() != "" {
+			answer = len(strings.Split(response.Body.String(), ","))
+		}
+		require.Equal(t, http.StatusOK, response.Code)
+		require.Equal(t, v.want, answer)
+	}
+}
+
+func TestCafeSearch(t *testing.T) {
+	requests := []struct {
+		word string
+		want int
+	}{
+		{"фасоль", 0},
+		{"кофе", 2},
+		{"вилка", 1},
+	}
+
+	for _, v := range requests {
+		response := httptest.NewRecorder()
+		req := httptest.NewRequest("GET", fmt.Sprintf("/cafe?city=moscow&search=%s", v.word), nil)
+
+		mainHandle(response, req)
+
+		answer := 0
+		strings.TrimSpace(response.Body.String())
+		if response.Body.String() != "" {
+			answer = len(strings.Split(response.Body.String(), ","))
+		}
+		require.Equal(t, http.StatusOK, response.Code)
+		require.Equal(t, v.want, answer)
 	}
 }
